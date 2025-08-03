@@ -1,0 +1,165 @@
+---
+title: "HypoxiaRNAseq_analysis"
+output: html_document
+date: "2025-08-01"
+---
+
+
+```{r}
+library(tidyverse)
+setwd("~/0_stroke_immuno_def")
+
+counts_raw <- read.delim("counts/final_counts_symbols.tsv", comment.char = "#", row.names = 1)
+counts <- counts_raw[, 1:ncol(counts_raw)]  # remove GeneSymbol
+
+# Check
+dim(counts)
+colnames(counts)
+summary(counts)
+boxplot(log2(counts + 1), las = 2, main = "Log2 Counts per Sample")
+
+```
+
+
+
+```{r}
+library(DESeq2)
+
+
+sample_info <- data.frame(
+  row.names = colnames(counts),
+  condition = c("Control", "Control", "Control", "Stroke", "Stroke", "Stroke", "Stroke")
+)
+
+sample_info$condition <- factor(sample_info$condition, levels = c("Control", "Stroke"))
+
+
+# DESeq2 object
+dds <- DESeqDataSetFromMatrix(countData = counts,
+                              colData = sample_info,
+                              design = ~ condition)
+dds <- dds[rowSums(counts(dds)) > 10, ]
+dds <- DESeq(dds)
+res <- results(dds)
+summary(res)
+
+```
+```{r}
+# Load required libraries
+library(DESeq2)
+library(ggplot2)
+
+
+# ----- VOLCANO PLOT -----
+# Prepare data
+res$gene <- rownames(res)
+res$signif <- ifelse(res$padj < 0.05 & abs(res$log2FoldChange) > 1, "yes", "no")
+
+# Plot volcano
+ggplot(res, aes(x = log2FoldChange, y = -log10(padj))) +
+  geom_point(aes(color = signif), alpha = 0.6) +
+  scale_color_manual(values = c("no" = "grey", "yes" = "red")) +
+  geom_vline(xintercept = c(-1, 1), linetype = "dashed") +
+  geom_hline(yintercept = -log10(0.05), linetype = "dashed") +
+  xlab("log2 Fold Change") +
+  ylab("-log10 adjusted p-value") +
+  ggtitle("Volcano Plot: Hypoxia vs Normoxia") +
+  theme_minimal()
+
+
+res_df <- as.data.frame(res)
+res_df$Gene <- rownames(res_df)
+```
+```{r}
+# Required libraries
+library(dplyr)
+library(tibble)
+library(ggplot2)
+library(ggrepel)
+library(ggrastr)
+
+# Prepare results as a dataframe
+df_results <- as.data.frame(res) %>%
+  rownames_to_column("SYMBOL") %>%
+  mutate(log2FoldChange = pmax(pmin(log2FoldChange, 10), -10),
+         padj = ifelse(is.na(padj) | padj < 1e-10, 1e-10, padj),
+         sig = case_when(
+           log2FoldChange > 2 & padj < 0.05 ~ "possig",
+           log2FoldChange < -2 & padj < 0.05 ~ "negsig",
+           TRUE ~ "nonsig"
+         ))
+
+# Add gene and significance classification
+res$gene <- rownames(res)
+res$signif <- case_when(
+  res$padj < 0.05 & res$log2FoldChange > 1  ~ "up",
+  res$padj < 0.05 & res$log2FoldChange < -1 ~ "down",
+  TRUE ~ "ns"
+)
+
+# Plot
+ggplot(res, aes(x = log2FoldChange, y = -log10(padj))) +
+  geom_point(aes(color = signif), alpha = 0.6) +
+  scale_color_manual(values = c("up" = "#c51b8a", "down" = "#2b8cbe", "ns" = "#bdbdbd")) +
+  geom_vline(xintercept = c(-1, 1), linetype = "dashed") +
+  geom_hline(yintercept = -log10(0.05), linetype = "dashed") +
+  xlab("log2 Fold Change") +
+  ylab("-log10 adjusted p-value") +
+  ggtitle("Volcano Plot: Stroke vs Control") +
+  theme_minimal()
+
+
+# Top/bottom gene labels
+df_top <- df_results %>%
+  filter(log2FoldChange > 5) %>%
+  arrange(padj) %>%
+  slice_head(n = 5) %>%
+  select(log2FoldChange, padj, SYMBOL)
+
+df_bottom <- df_results %>%
+  filter(log2FoldChange <= -5) %>%
+  arrange(padj) %>%
+  slice_head(n = 5) %>%
+  select(log2FoldChange, padj, SYMBOL)
+
+# Final volcano plot with labels
+# Save as PDF
+#ggsave("2_Volcano_all.pdf", PLOT_volcano2, width = 4, height = 4, useDingbats = FALSE)
+
+```
+```{r fig.height=2.5, fig.width=15}
+# Genes related to hypoxia, ischemia, and inflammation
+library(clusterProfiler)
+library(org.Mm.eg.db)
+
+# Remove NAs and set gene symbols as names
+res_clean <- res[!is.na(res$padj) & !is.na(res$log2FoldChange), ]
+gene_list <- res_clean$log2FoldChange
+names(gene_list) <- rownames(res_clean)
+
+# Sort in decreasing order (required for GSEA)
+gene_list <- sort(gene_list, decreasing = TRUE)
+
+gsea_go <- gseGO(
+  geneList     = gene_list,
+  OrgDb        = org.Mm.eg.db,
+  keyType      = "SYMBOL",
+  ont          = "BP",           # Biological Process
+  minGSSize    = 10,
+  maxGSSize    = 500,
+  pvalueCutoff = 0.05,
+  verbose      = FALSE
+)
+
+
+```
+```{r fig.height=9, fig.width=7}
+library(enrichplot)
+library(ggplot2)
+
+dotplot(gsea_go, showCategory = 15, split = ".sign") +
+  facet_grid(.~.sign) +
+  ggtitle("GSEA: Stroke vs Control (GO Biological Process)")
+
+```
+

@@ -1,0 +1,97 @@
+---
+title: "Path_to_answers"
+output: html_document
+date: "2025-08-03"
+---
+
+```{r}
+## Q1. What percentage of bases in sample WT_Stroke_1 have a quality score ≥ Q30?
+
+# Reported from FastQC or MultiQC summary
+q30_percent <- 95.2
+paste0(q30_percent, "%")
+
+```
+
+```{r}
+# Reported from FastQC output
+gc_content <- 49
+paste0(gc_content, "%")
+```
+
+```{r}
+# Taken from `samtools flagstat`
+mapping_percent <- 96.36
+paste0(mapping_percent, "%")
+```
+Question: What percentage of expressed genes in sample WT_Stroke_1 are mitochondrial (gene symbols starting with 'mt-')?
+
+```{r}
+# Assuming 'counts' is already loaded and has gene symbols as rownames
+# Expressed genes: nonzero counts
+expressed_genes <- rownames(counts)[counts$WT_Stroke_1 > 0]
+
+# Mitochondrial genes start with "mt-"
+mt_genes <- grep("^mt-", expressed_genes, value = TRUE, ignore.case = TRUE)
+
+# Calculate percent
+mt_percent <- round(length(mt_genes) / length(expressed_genes) * 100, 2)
+paste0(mt_percent, "% (", length(mt_genes), "/", length(expressed_genes), ")")
+
+
+```
+
+```{r}
+# Ensure results are loaded
+res_df <- as.data.frame(res)
+res_df$Gene <- rownames(res_df)
+
+# Filter for positive fold change and remove NA padj
+res_filtered <- res_df %>%
+  filter(!is.na(log2FoldChange)) %>%
+  arrange(desc(log2FoldChange))
+
+# Get top gene
+top_gene <- res_filtered$Gene[1]
+top_fc <- res_filtered$log2FoldChange[1]
+top_fc
+```
+
+```{r}
+# Convert DESeq2 results to dataframe and add gene names
+res_df <- as.data.frame(res)
+res_df$Gene <- rownames(res_df)
+
+# Sort by log2 fold change descending
+res_sorted <- res_df[order(-res_df$log2FoldChange), ]
+
+# View the top upregulated gene
+head(res_sorted[, c("Gene", "log2FoldChange", "padj")], 1)
+
+```
+```{r}
+# Assuming DESeq2 results object is 'res'
+res_df <- as.data.frame(res)
+upregulated <- res_df %>%
+  filter(log2FoldChange >= 1 & padj < 0.05)
+nrow(upregulated)
+```
+
+```{r}
+# Convert GSEA result to a dataframe
+gsea_df <- as.data.frame(gsea_go)
+
+# Calculate GeneRatio (from core_enrichment / setSize)
+gsea_df <- gsea_df %>%
+  mutate(
+    gene_ratio = sapply(core_enrichment, function(x) length(unlist(strsplit(x, "/|;")))) / setSize
+  )
+
+# Sort by gene ratio
+gsea_df <- gsea_df %>% arrange(desc(NES))
+
+# Show top GO term by gene ratio
+gsea_df[1, c("ID", "Description", "gene_ratio", "NES", "p.adjust")]
+
+```
+
