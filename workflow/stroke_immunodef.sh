@@ -131,4 +131,4 @@ sed -i '' '1 s|aligned/||g; 1 s|\.bam||g' counts/final_counts_symbols.tsv
 # Preview
 head counts/final_counts_symbols.tsv | column -t
 
-echo "✅ RNA-seq pipeline complete: WT Stroke vs WT Control."
+echo "RNA-seq pipeline complete: WT Stroke vs WT Control."
