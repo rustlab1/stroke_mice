@@ -1,5 +1,10 @@
 # Mouse stroke RNA seq preprocessing and analysis
 
+paper_title: Molecular and anatomical roadmap of stroke pathology in immunodeficient mice
+journal: Frontiers in Immunology
+publication_date: "2022-12-09"
+doi: 10.3389/fimmu.2022.1080482
+
 This repository provides an end to end workflow for RNA seq analysis of wild type mouse brain comparing stroke and control.  
 It includes two parts
 
