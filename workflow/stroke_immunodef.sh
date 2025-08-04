@@ -2,7 +2,7 @@
 
 # RNA-seq pipeline for WT Stroke vs WT Control (SINGLE-END)
 # Project: PRJNA860208
-# Structure: 0_stroke_immuno_def/{raw,fastq,trimmed,aligned,counts,logs,qc}
+# Structure: stroke_mice/{raw,fastq,trimmed,aligned,counts,logs,qc}
 
 # -------------------- Setup --------------------
 
@@ -17,8 +17,8 @@ conda create -n stroke_rnaseq -c bioconda -c conda-forge \
 conda activate stroke_rnaseq
 
 # Folder setup
-mkdir -p ~/0_stroke_immuno_def/{raw,fastq,trimmed,aligned,counts,logs,qc}
-cd ~/0_stroke_immuno_def/raw
+mkdir -p ~/stroke_mice/{raw,fastq,trimmed,aligned,counts,logs,qc}
+cd ~/stroke_mice/raw
 
 # -------------------- Define SRA Runs --------------------
 
@@ -55,25 +55,25 @@ mv WT_*.fastq.gz ../fastq/
 
 # -------------------- QC --------------------
 
-cd ~/0_stroke_immuno_def/fastq
+cd ~/stroke_mice/fastq
 fastqc *.fastq.gz -o ../qc --threads 16
 
 
 # -------------------- Alignment --------------------
 
-mkdir -p ~/0_stroke_immuno_def/hisat2_index
-cd ~/0_stroke_immuno_def/hisat2_index
+mkdir -p ~/stroke_mice/hisat2_index
+cd ~/stroke_mice/hisat2_index
 
 # Download and unpack HISAT2 mm10 index
 curl -O ftp://ftp.ccb.jhu.edu/pub/infphilo/hisat2/data/mm10.tar.gz
 
-cd ~/0_stroke_immuno_def/hisat2_index
+cd ~/stroke_mice/hisat2_index
 tar -xzf mm10.tar.gz
 
 ls mm10
 
 
-cd ~/0_stroke_immuno_def
+cd ~/stroke_mice
 SAMPLES=(WT_Stroke_1 WT_Stroke_2 WT_Stroke_3 WT_Stroke_4 WT_Ctrl_1 WT_Ctrl_2 WT_Ctrl_3)
 
 # Align each sample
@@ -110,7 +110,7 @@ done
 
 # -------------------- Quantification --------------------
 
-cd ~/0_stroke_immuno_def
+cd ~/stroke_mice
 
 # Download GENCODE mouse annotation
 curl -O https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M32/gencode.vM32.annotation.gtf.gz
