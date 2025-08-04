@@ -70,11 +70,11 @@ gsea_df <- gsea_df %>%
     gene_ratio = sapply(core_enrichment, function(x) length(unlist(strsplit(x, "/|;")))) / setSize
   )
 
-# Sort by gene ratio
+# Sort by NES
 gsea_df <- gsea_df %>% arrange(desc(NES))
 
-# Show top GO term by gene ratio
-gsea_df[1, c("ID", "Description", "gene_ratio", "NES", "p.adjust")]
+# Show top GO term by NES
+gsea_df[1, c("ID", "Description", "gene_ratio", "NES", "p.adjust")]$Description
 
 ```
 
