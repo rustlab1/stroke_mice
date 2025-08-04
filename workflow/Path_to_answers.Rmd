@@ -4,29 +4,27 @@ output: html_document
 date: "2025-08-03"
 ---
 
-```{r}
-## Q1. What percentage of bases in sample WT_Stroke_1 have a quality score ≥ Q30?
-
-# Reported from FastQC or MultiQC summary
-q30_percent <- 95.2
-paste0(q30_percent, "%")
-
-```
+Note: Before running this script, please run stroke_immunodef.Rmd and make sure all necessary datasets (e.g., counts, res, gsea_go) are loaded into the environment.
 
 ```{r}
-# Reported from FastQC output
+# 1  "What is the GC content percentage in sample WT_Ctrl_1?"
+# Taken from QC files in shell 
 gc_content <- 49
 paste0(gc_content, "%")
 ```
 
 ```{r}
+# 2 "What percentage of reads from sample WT_Stroke_1 map uniquely to the mm10 reference genome?"
 # Taken from `samtools flagstat`
 mapping_percent <- 96.36
 paste0(mapping_percent, "%")
 ```
-Question: What percentage of expressed genes in sample WT_Stroke_1 are mitochondrial (gene symbols starting with 'mt-')?
+
 
 ```{r}
+
+# 3) What percentage of expressed genes in sample WT_Stroke_1 are mitochondrial (gene symbols starting with 'mt-')?
+
 # Assuming 'counts' is already loaded and has gene symbols as rownames
 # Expressed genes: nonzero counts
 expressed_genes <- rownames(counts)[counts$WT_Stroke_1 > 0]
@@ -41,23 +39,11 @@ paste0(mt_percent, "% (", length(mt_genes), "/", length(expressed_genes), ")")
 
 ```
 
-```{r}
-# Ensure results are loaded
-res_df <- as.data.frame(res)
-res_df$Gene <- rownames(res_df)
 
-# Filter for positive fold change and remove NA padj
-res_filtered <- res_df %>%
-  filter(!is.na(log2FoldChange)) %>%
-  arrange(desc(log2FoldChange))
-
-# Get top gene
-top_gene <- res_filtered$Gene[1]
-top_fc <- res_filtered$log2FoldChange[1]
-top_fc
-```
 
 ```{r}
+# 4) "Which gene is most upregulated after stroke, based on fold change?"
+
 # Convert DESeq2 results to dataframe and add gene names
 res_df <- as.data.frame(res)
 res_df$Gene <- rownames(res_df)
@@ -66,18 +52,15 @@ res_df$Gene <- rownames(res_df)
 res_sorted <- res_df[order(-res_df$log2FoldChange), ]
 
 # View the top upregulated gene
-head(res_sorted[, c("Gene", "log2FoldChange", "padj")], 1)
+head(res_sorted[, c("Gene", "log2FoldChange", "padj")], 1)$Gene
+
 
 ```
-```{r}
-# Assuming DESeq2 results object is 'res'
-res_df <- as.data.frame(res)
-upregulated <- res_df %>%
-  filter(log2FoldChange >= 1 & padj < 0.05)
-nrow(upregulated)
-```
+
 
 ```{r}
+
+# 5) "Which pathway has the highest normalized enrichment score (NES)?"
 # Convert GSEA result to a dataframe
 gsea_df <- as.data.frame(gsea_go)
 

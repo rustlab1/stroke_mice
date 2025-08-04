@@ -1,0 +1,62 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2822
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 paper_title: Molecular and anatomical roadmap of stroke pathology in immunodeficient mice\
+journal: Frontiers in Immunology\
+publication_date: "2022-12-09"\
+doi: 10.3389/fimmu.2022.1080482\
+series_accession: GSE208605\
+bioproject: PRJNA860208\
+domain: rna_seq\
+organism: Mus musculus\
+experiment_type: RNA seq single end\
+platform: Illumina NovaSeq 6000\
+ref_genome: mm10 GENCODE vM32\
+read_type: single_end\
+sample_count: 7\
+sra_runs_total: 7\
+\
+samples:\
+  WT_Stroke_1:\
+    condition: stroke\
+    sra_runs: [SRR20315306]\
+  WT_Stroke_2:\
+    condition: stroke\
+    sra_runs: [SRR20315307]\
+  WT_Stroke_3:\
+    condition: stroke\
+    sra_runs: [SRR20315314]\
+  WT_Stroke_4:\
+    condition: stroke\
+    sra_runs: [SRR20315326]\
+  WT_Ctrl_1:\
+    condition: control\
+    sra_runs: [SRR20315316]\
+  WT_Ctrl_2:\
+    condition: control\
+    sra_runs: [SRR20315322]\
+  WT_Ctrl_3:\
+    condition: control\
+    sra_runs: [SRR20315324]\
+\
+paths:\
+  fastq: fastq/\
+  trimmed: trimmed/\
+  aligned: aligned/\
+  counts: counts/\
+  logs: logs/\
+  qc: qc/\
+  reference:\
+    hisat2_index: hisat2_index/mm10/genome\
+    annotation_gtf: gencode.vM32.annotation.gtf\
+\
+workflow:\
+  threads: 16\
+  trimmer: Trimmomatic\
+  aligner: HISAT2\
+  quantifier: featureCounts\
+notes: "WT subset of GSE208605 stroke and control only"}
